@@ -9,8 +9,10 @@ module CaptainsMistress
     def initialize(options = {})
       @verbose = options.fetch(:verbose, false)
 
-      @rows = 6
-      @cols = 7
+      @rows = options.fetch(:height, 6)
+      @cols = options.fetch(:width, 7)
+
+      @winLength = options.fetch(:length, 4)
 
       @grid = Array.new(42, 0)
     end
@@ -90,7 +92,7 @@ module CaptainsMistress
 
       end
 
-      if length >= 4
+      if length >= @winLength
         return true
       end
 
@@ -143,7 +145,7 @@ module CaptainsMistress
       # puts "Checking Right #{rightLength}"
 
 
-      if leftLength + rightLength - 1 >= 4
+      if leftLength + rightLength - 1 >= @winLength
         return true
       end
 
@@ -202,7 +204,7 @@ module CaptainsMistress
 
       # puts "Checking LowerRight #{rightDiagLength}"
 
-      if leftDiagLength + rightDiagLength - 1 >= 4
+      if leftDiagLength + rightDiagLength - 1 >= @winLength
         return true
       end
 
@@ -260,7 +262,7 @@ module CaptainsMistress
 
       # puts "Checking UpperRight #{rightDiagLength}"
 
-      if leftDiagLength + rightDiagLength - 1 >= 4
+      if leftDiagLength + rightDiagLength - 1 >= @winLength
         return true
       end
 
@@ -281,7 +283,7 @@ module CaptainsMistress
 
       while running do
         
-        puts "Player #{player} select column (1 - 7)"
+        puts "Player #{player} select column (1 - #{@cols})"
         input = $stdin.gets.chomp
 
         if input == "exit" or input == "q"
@@ -290,7 +292,7 @@ module CaptainsMistress
 
         intInput = Integer(input) rescue false || -1
 
-        if intInput > 0 and intInput <= 7
+        if intInput > 0 and intInput <= @cols
 
           index = updateGrid(intInput,player)
           if index < 0
@@ -307,7 +309,7 @@ module CaptainsMistress
 
           
         else
-          puts "Invalid input, Please Integer from 1 to 7"
+          puts "Invalid input, Please Integer from 1 to #{@cols}"
         end
 
       end
