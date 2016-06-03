@@ -14,7 +14,7 @@ module CaptainsMistress
 
       @winLength = options.fetch(:length, 4)
 
-      @grid = Array.new(42, 0)
+      @grid = Array.new(@rows * @cols, 0)
     end
 
     def render
@@ -58,6 +58,41 @@ module CaptainsMistress
 
     end
 
+    def consecutiveLengthCalc(index, player, posIncrement, rowInc, colInc)
+      # Returns number of consecutive pieces in a given direction
+
+      pos = index
+      length = 0
+      searching = true
+      inbounds = true
+      rowNum = pos/@cols
+      colNum = pos - rowNum * @cols
+
+
+      while searching and inbounds do
+
+        if @grid[pos] == player 
+          length += 1
+        else
+          searching = !searching
+        end
+
+        # pos < @cols * @rows
+
+        pos += posIncrement
+        rowNum += rowInc
+        colNum += colInc
+        if yield pos, rowNum, colNum
+          inbounds = !inbounds
+        end
+
+
+      end
+
+      return length
+
+    end
+
     def checkWin(index, player) 
 
       #Checks along each direction of a given index of the grid to see if atleast 4 pieces
@@ -69,198 +104,37 @@ module CaptainsMistress
         player = "*"
       end
 
-      # Check Vertical
-      pos = index
-      length = 0
-      searching = true
-      inbounds = true
-      while searching and inbounds do
-
-        if @grid[pos] == player 
-          length += 1
-        else
-          searching = !searching
-        end
-
-        pos < @cols * @rows
-
-        pos += @cols
-        if pos > @cols * @rows - 1
-          inbounds = !inbounds
-        end
-
-
-      end
-
-      if length >= @winLength
+      # Vertical Check
+      if consecutiveLengthCalc(index, player, @cols, 0, 0) {|pos, rowNum| pos > @cols * @rows - 1} >= @winLength
         return true
       end
 
-      # Horizontal
-      #   Left
-      pos = index
-      leftLength = 0
-      searching = true
-      inbounds = true
-
-      rowNum = pos/@cols
-
-      while searching and inbounds do
-        # puts "#{@grid[pos]}, #{player}, #{rowNum}, #{pos}"
-        if @grid[pos] == player
-          leftLength += 1
-        else
-          searching = !searching
-        end
-
-        pos -= 1
-        if pos < rowNum * @cols
-          inbounds = !inbounds
-        end
-
-      end
-      # puts "Checking Left #{leftLength}"
-
-      #   Right
-      pos = index
-      rightLength = 0
-      searching = true
-      inbounds = true
-
-      while searching and inbounds do
-
-        if @grid[pos] == player
-          rightLength += 1
-        else
-          searching = !searching
-        end
-
-        pos += 1
-        if pos >= rowNum * @cols + @cols
-          inbounds = !inbounds
-        end
-
-      end
-
-      # puts "Checking Right #{rightLength}"
+      # Horizontal Check
+      #Left
+      leftLength = consecutiveLengthCalc(index, player, -1, 0, 0) {|pos, rowNum| pos < rowNum * @cols}
+      #Right
+      rightLength = consecutiveLengthCalc(index, player, 1, 0, 0) {|pos, rowNum| pos < rowNum * @cols}
 
 
       if leftLength + rightLength - 1 >= @winLength
         return true
       end
 
-      # UL to LR Diag Check
+      # UL to LR Check
       # Left
-      pos = index
-      leftDiagLength = 0
-      searching = true
-      inbounds = true
-      rowNum = pos/@cols
-      colNum = pos - rowNum * @cols
-
-      while searching and inbounds do
-
-        if @grid[pos] == player
-          leftDiagLength += 1
-        else
-          searching = !searching
-        end
-
-        pos -= @cols + 1
-        rowNum -= 1
-        colNum -= 1
-        if rowNum < 0 or colNum < 0
-          inbounds = !inbounds
-        end
-
-      end
-
-      # puts "Checking UpperLeft #{leftDiagLength}"
-
+      leftDiagLength = consecutiveLengthCalc(index, player, -(@cols + 1), -1, -1) {|pos, rowNum, colNum| rowNum < 0 or colNum < 0}
       # Right
-      pos = index
-      rightDiagLength = 0
-      searching = true
-      inbounds = true
-      rowNum = pos/@cols
-      colNum = pos - rowNum * @cols
-
-      while searching and inbounds do
-
-        if @grid[pos] == player
-          rightDiagLength += 1
-        else
-          searching = !searching
-        end
-
-        pos += @cols + 1
-        rowNum += 1
-        colNum += 1
-        if rowNum > @rows - 1 || colNum > @cols - 1 
-          inbounds = !inbounds
-        end
-
-      end
-
-      # puts "Checking LowerRight #{rightDiagLength}"
+      rightDiagLength = consecutiveLengthCalc(index, player, @cols + 1, 1, 1) {|pos, rowNum, colNum| rowNum > @rows - 1 or colNum > @cols - 1}
 
       if leftDiagLength + rightDiagLength - 1 >= @winLength
         return true
       end
 
-
-      # LL to UR Diag Check
+      # UR to LL Check
       # Left
-      pos = index
-      leftDiagLength = 0
-      searching = true
-      inbounds = true
-      rowNum = pos/@cols
-      colNum = pos - rowNum * @cols
-
-      while searching and inbounds do
-
-        if @grid[pos] == player
-          leftDiagLength += 1
-        else
-          searching = !searching
-        end
-
-        pos += @cols - 1
-        rowNum += 1
-        colNum -= 1
-        if rowNum > @rows - 1 || colNum < 0
-          inbounds = !inbounds
-        end
-
-      end
-
-      # puts "Checking LowerLeft #{leftDiagLength}"
-
-      # Left
-      pos = index
-      rightDiagLength = 0
-      searching = true
-      inbounds = true
-      rowNum = pos/@cols
-      colNum = pos - rowNum * @cols
-
-      while searching and inbounds do
-
-        if @grid[pos] == player
-          rightDiagLength += 1
-        else
-          searching = !searching
-        end
-
-        pos -= @cols - 1
-        if rowNum < 0 || colNum > @cols - 1
-          inbounds = !inbounds
-        end
-
-      end
-
-      # puts "Checking UpperRight #{rightDiagLength}"
+      leftDiagLength = consecutiveLengthCalc(index, player, @cols - 1, 1, -1) {|pos, rowNum, colNum| rowNum > @rows - 1 or colNum < 0}
+      # Right
+      rightDiagLength = consecutiveLengthCalc(index, player, -(@cols - 1), -1, 1) {|pos, rowNum, colNum| rowNum < 0 or colNum > @cols - 1}
 
       if leftDiagLength + rightDiagLength - 1 >= @winLength
         return true
